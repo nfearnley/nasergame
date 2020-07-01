@@ -22,9 +22,10 @@ def main():
 
     clock = pygame.time.Clock()
 
-    fighter = Wireframe(model=models.load("fighter1"))
-    fighter.scale = 1000, 1000, 1000
-    fighter.translation = 256, 256, 0
+    #fighter = Wireframe(model=models.load("fighter1"))
+    fighter = Wireframe(model=models.load("arwing_SNES"))
+    fighter.scale = 250, 250, 250
+    fighter.translation = 64, 64, 0
 
     scale_speed = 10
     translate_speed = 2
