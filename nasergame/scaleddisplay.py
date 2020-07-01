@@ -24,7 +24,7 @@ def set_mode(surface_size, window_size):
 
     Returns
     -------
-        The actual number of nanoseconds used.
+        The fictional number of nanoseconds used.
     """
     global input_surface
     global output_surface

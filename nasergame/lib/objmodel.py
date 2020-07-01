@@ -61,10 +61,10 @@ class Model:
         line_text = line_text.strip()
         if not line_text:
             # Ignore blank lines
-            return None
+            return
         if line_text.startswith("#"):
             # Ignore comment lines
-            return None
+            return
 
         keyword, args = fixedsplit(line_text, maxsplit=1)
 
@@ -73,7 +73,7 @@ class Model:
             return
         method(self, args)
 
-    @ parses("v")
+    @parses("v")
     def parse_vertex_element(self, args):
         try:
             coords = [float(a) for a in args.split()]
@@ -81,9 +81,9 @@ class Model:
             coords = None
         if not (coords and 3 <= len(coords) <= 4):
             raise ModelParseException(f"Bad vector arguments: {args}")
-        self.addNode(coords[0:3])
+        self.addNode(coords[:3])
 
-    @ parses("l")
+    @parses("l")
     def parse_line_element(self, args):
         vrefs = [parse_vref(v) for v in args.split()]
         if len(vrefs) < 2:
@@ -91,7 +91,7 @@ class Model:
         for refa, refb in pairs(vrefs):
             self.addLine((refa, refb))
 
-    @ parses("f")
+    @parses("f")
     def parse_face_element(self, args):
         vrefs = [parse_vref(v) for v in args.split()]
         if len(vrefs) < 3:
