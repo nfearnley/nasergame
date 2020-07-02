@@ -3,7 +3,7 @@ from functools import lru_cache
 import importlib.resources
 
 import nasergame.models
-from nasergame.lib.objmodel import Model
+from nasergame.lib.modelparsers.obj import Model
 
 
 @lru_cache(maxsize=None)
