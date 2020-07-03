@@ -48,6 +48,7 @@ class Model:
 
         # Remove an duplicate lines
         self.lines = list(dict.fromkeys(self.lines))
+        self.line_nodes = np.array([self.nodes[ref] for line in self.lines for ref in line])
 
     def addNode(self, xyz):
         xyzw = np.hstack((xyz, 1))

@@ -1,3 +1,5 @@
+from itertools import tee
+
 import pygame
 from digicolor import colors
 import numpy as np
@@ -7,13 +9,9 @@ from nasergame.lib import math3d as m3d
 __all__ = ["Wireframe"]
 
 
-def map_lines(lines, nodes):
-    for startref, endref in lines:
-        start = nodes[startref][:2]
-        end = nodes[endref][:2]
-        if np.any(np.isinf(start)) or np.any(np.isinf(end)):
-            continue
-        yield start, end
+def pairs(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    return zip(iterable[::2], iterable[1::2])
 
 
 class Wireframe():
@@ -23,6 +21,9 @@ class Wireframe():
         self.scale = (1, 1, 1)
         self.rotation_matrix = m3d.matrix.identity()
         self.translation = (0, 0, 0)
+
+    def reset_rotation(self):
+        self.rotation_matrix = m3d.matrix.identity()
 
     def rotate_world_x(self, rx):
         self.rotation_matrix = m3d.combine([self.rotation_matrix, m3d.matrix.rotateX(rx)])
@@ -43,7 +44,7 @@ class Wireframe():
         self.rotation_matrix = m3d.combine([m3d.matrix.rotateZ(rz), self.rotation_matrix])
 
     def render(self, screen, toggle):
-        nodes = self.model.nodes
+        line_nodes = self.model.line_nodes
         # model space -> world space
         matrix = m3d.combine([
             m3d.matrix.scale(self.scale),
@@ -53,21 +54,18 @@ class Wireframe():
         # world space -> view space
         ...
         #
-        nodes = m3d.transform(nodes, matrix)
+        line_nodes = m3d.transform(line_nodes, matrix)
         # view space -> clip space
-        # apply transformations        
+        # apply transformations
         # TODO: Add clipping here
-        lines = []
+        clipped_nodes = np.zeros((0,4))
         near = 0.1
-        for startref, endref in self.model.lines:
-            start = nodes[startref]
-            end = nodes[endref]
-            if start[2] < near and end[2] < near:
-                ...
-            elif start[2] < near or end[2] < near:
-                if end[2] < start[2]:
-                    startref, endref = endref, startref
-                    start, end = end, start
+        for start, end in pairs(line_nodes):
+            if start[2] > end[2]:
+                start, end = end, start
+            if end[2] < near:
+                continue
+            if start[2] < near:
                 diff = (near - start[2]) / (end[2] - start[2])
                 newstart = (
                     (end[0] - start[0]) * diff + start[0],
@@ -75,19 +73,18 @@ class Wireframe():
                     near,
                     1
                 )
-                newstartref = len(nodes)
-                nodes = np.vstack((nodes, newstart))
-                lines.append((newstartref, endref))
+                clipped_nodes = np.vstack((clipped_nodes, newstart))
+                clipped_nodes = np.vstack((clipped_nodes, end))
             else:
-                lines.append((startref, endref))
+                clipped_nodes = np.vstack((clipped_nodes, start))
+                clipped_nodes = np.vstack((clipped_nodes, end))
 
         # add perspective
         if toggle:
-            nodes = m3d.transform(nodes, m3d.matrix.perspective(10))
+            clipped_nodes = m3d.transform(clipped_nodes, m3d.matrix.perspective(10))
         # clip space -> viewport space
-        nodes = m3d.project(nodes)
+        clipped_nodes = m3d.project(clipped_nodes)
         # viewport space -> screen space
-        nodes = m3d.transform(nodes, m3d.matrix.NDCtoScreen(0, 512, 0, 512))
-        # nodes = m3d.normalize(nodes)
-        for start, end in map_lines(lines, nodes):
-            pygame.draw.line(screen, self.color, start, end)
+        clipped_nodes = m3d.transform(clipped_nodes, m3d.matrix.NDCtoScreen(0, 512, 0, 512))
+        for start, end in pairs(clipped_nodes):
+            pygame.draw.line(screen, self.color, start[:2], end[:2])
