@@ -1,6 +1,5 @@
+# flake8-ignore
 import numpy as np
-
-__all__ = ["translate", "scale", "rotateX", "rotateY", "rotateZ"]
 
 
 def identity():
@@ -79,8 +78,16 @@ def rotateZ(rz):
 #                      [   0,   0, 0, 1]])
 
 
-def perspective():
+def perspective(c):
     return np.array([[1, 0, 0, 0],
                      [0, 1, 0, 0],
-                     [0, 0, 0, 1],
+                     [0, 0, 1, 1],
                      [0, 0, 0, 0]])
+
+
+def NDCtoScreen(l, r, t, b):
+    """Transforms NDC coordinates (-1, 1) range to screen coordinates)"""
+    return np.array([[(r-l)/2,       0,   0, 0],
+                     [      0, (t-b)/2,   0, 0],
+                     [      0,       0, 1/2, 0],
+                     [(r+l)/2, (t+b)/2, 1/2, 1]])
