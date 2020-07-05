@@ -10,17 +10,19 @@ Model files are stored in this space
 
 ### Model Matrix (*Model Space → World Space*)
 
-Aliases: *World Matrix*, *Model Transformation Matrix*, *Model to World*
+Aliases: *World Matrix*, *Model Transformation Matrix*, *Model to World*, *Modeling Transform*
 
 **Model Space** is transformed into **World Space** via the **Model Matrix**
 
 ## World Space
 
+Aliases: *World Coords*
+
 Origin is relative to the world
 
 ### View Matrix (*World Space → View Space*)
 
-Aliases: *Camera Transformation Matrix*, *World to View*
+Aliases: *Camera Transformation Matrix*, *World to View*, *Camera Transformation*
 
 **World Space** is transformed into **View Space** via the **View Matrix**
 
@@ -28,7 +30,7 @@ Inverse of the Camera's transformation matrix
 
 ## View Space
 
-Aliases: *Eye Space*, *Camera Space*
+Aliases: *Eye Space*, *Camera Space*, *Eye Coords*
 
 Origin is relative to camera
 
@@ -38,7 +40,7 @@ Origin is relative to camera
 
 ### Perspective Projection Matrix (*View Space → Projection Space*)
 
-Aliases: *Clip Matrix*, *View to Projection Matrix*
+Aliases: *Clip Matrix*, *View to Projection Matrix*, *Projection Transformation*
 
 **View Space** is transformed into **Projection Space** via the **View to Projection Matrix**
 
@@ -81,7 +83,7 @@ Sets w-coordinate to prepare for **perspective division**
 
 ## Projection Space
 
-Aliases: *Clip Space*, *Canonical View Volume Space*
+Aliases: *Clip Space*, *Canonical View Volume Space*, *Canonical View Volume*
 
 Origin is relative to camera
 
@@ -93,6 +95,16 @@ Dimensions for all visible coordinates are between to -1 and +1
 * `-y, +y` = down, up (-1 to +1)
 * `-z, +z` = far, near (-1 to +1)
 
+### Viewport Transformation
+
+**Projection Space** is transformed into **Screen Space** via the **Viewport Transformation**
+
+### Screen Space
+
+x, y match screen dimensions
+
+z = near
+
 ## GPU Stuff
 
 * **Perspective Division** - Divide each coordinate by w-coordinate
@@ -100,10 +112,15 @@ Dimensions for all visible coordinates are between to -1 and +1
 * Flattening the image by dropping the z-coordinate
 * Remapping (-1 to +1) to (0 to +1) and then scaled to viewport width/height
 
-# Notes:
+# Matrices
 
-* Column Vector Notation
-* Row Vector Notation
+## Column Vector Notation
+
+![matrix](https://render.githubusercontent.com/render/math?math=\begin{pmatrix}x%5C%5Cy%5C%5Cz%5C%5Cw\end{pmatrix})
+
+## Row Vector Notation
+
+![matrix](https://render.githubusercontent.com/render/math?math=\begin{pmatrix}x%26y%26z%26w\end{pmatrix})
 
 # TODO:
 
