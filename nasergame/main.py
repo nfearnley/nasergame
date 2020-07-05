@@ -12,7 +12,7 @@ from nasergame.components import Wireframe
 
 
 model_names = ["cube", "fighter1", "arwing_SNES"]
-model_scales = [0.5, 5, 0.1]
+model_scales = [0.25, 5, 0.1]
 selected_model = 0
 
 
@@ -26,7 +26,7 @@ def load_model(wf):
     model_name = model_names[selected_model]
     wf.model = models.load(model_name)
     wf.scale = (model_scales[selected_model],) * 3
-    wf.translation = 0, 0, 1
+    wf.translation = 0, 0, -2
     wf.reset_rotation()
     wf.rotate_world_y(math.radians(30))
     wf.rotate_world_x(math.radians(15))
@@ -39,6 +39,7 @@ def main():
 
     framerate = 60
     screen = scaleddisplay.set_mode((512, 512), (512, 512))
+    screen.set_alpha(None)
 
     clock = pygame.time.Clock()
 
@@ -66,6 +67,8 @@ def main():
                     toggled = not toggled
                 elif event.key == K_f:
                     next_model(wf)
+                if event.key == K_SPACE:
+                    print(clock.get_fps())
         delay = clock.get_time()
 
         scale_amt = scale_speed * delay / 1000

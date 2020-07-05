@@ -1,4 +1,5 @@
 import pygame
+from pygame.locals import DOUBLEBUF
 
 input_surface = None
 output_surface = None
@@ -30,7 +31,7 @@ def set_mode(surface_size, window_size):
     global output_surface
 
     input_surface = pygame.Surface(surface_size)
-    output_surface = pygame.display.set_mode(window_size)
+    output_surface = pygame.display.set_mode(window_size, DOUBLEBUF)
 
     return input_surface
 

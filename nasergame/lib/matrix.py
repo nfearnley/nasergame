@@ -78,16 +78,59 @@ def rotateZ(rz):
 #                      [   0,   0, 0, 1]])
 
 
-def perspective(c):
-    return np.array([[1, 0, 0, 0],
-                     [0, 1, 0, 0],
-                     [0, 0, 1, 1],
-                     [0, 0, 0, 0]])
+def perspective(fov, n, f):
+    # x, y = (x * near / -z), (y * near / -z)
+
+    # multiply x, y by near
+    perspective_step_1 = np.array([
+        [n, 0, 0, 0],
+        [0, n, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
+    # [x * n, y * n, z, w]
+
+    # set w to -z
+    perspective_step_2 = np.array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, -1],
+        [0, 0, 0, 0]
+    ])
+    # [x * n, y * n, z, -z]
+
+    # scale to coordinates to -1,+1
+    s = 1 / n * np.tan(np.radians(fov / 2))
+    perspective_step_3 = np.array([
+        [s, 0, 0, 0],
+        [0, s, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
+    # [x * n * s, y * n * s, z, -z]
+    # This cancels out the near parameter?
+
+    # Map z to non-linear coordinates
+    c1 = 2 * f * n / (n - f)
+    c2 = (f + n) / (f - n)
+    perspective_step_4 = np.array([
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, -c2, 0],
+        [0, 0, c1, 1]
+    ])
+
+    perspective_matrix = perspective_step_1 @ perspective_step_2 @ perspective_step_3 @ perspective_step_4
+
+    return np.array([[s, 0, 0, 0],
+                     [0, s, 0, 0],
+                     [0, 0, -f / (f - n), -1],
+                     [0, 0, -(f * n) / (f - n), 0]])
 
 
 def NDCtoScreen(l, r, t, b):
     """Transforms NDC coordinates (-1, 1) range to screen coordinates)"""
-    return np.array([[(r-l)/2,       0,   0, 0],
-                     [      0, (t-b)/2,   0, 0],
-                     [      0,       0, 1/2, 0],
-                     [(r+l)/2, (t+b)/2, 1/2, 1]])
+    return np.array([[(r - l) / 2, 0, 0, 0],
+                     [0, (t - b) / 2, 0, 0],
+                     [0, 0, 1 / 2, 0],
+                     [(r + l) / 2, (t + b) / 2, 1 / 2, 1]])

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-from nasergame.lib.utils import fixedsplit, pairs, wrapped_pairs
+from nasergame.lib.utils import fixedsplit
 
 
 class ModelParseException(Exception):
@@ -32,42 +32,48 @@ def parser(cls):
     return cls
 
 
+def map_vrefs(vrefs, nodes):
+    out_nodes = np.zeros((0, 4))
+    for vref in vrefs:
+        node = nodes[vref]
+        out_nodes = np.vstack((out_nodes, node))
+    return out_nodes
+
+
 @parser
 class Model:
     def __init__(self, text):
         self.nodes = np.zeros((0, 4))
-        self.lines = []
+        self.vref_lines = []
 
         """load a wireframe from the contents of a Waveform OBJ model file"""
 
         # Remove line continuation characters "\"
         text = text.replace("\\\n", "")
 
-        for line in text.splitlines():
-            self.parse_line(line)
+        for text_line in text.splitlines():
+            self.parse_line(text_line)
 
-        # Remove an duplicate lines
-        self.lines = list(dict.fromkeys(self.lines))
-        self.line_nodes = np.array([self.nodes[ref] for line in self.lines for ref in line])
+        self.lines = [map_vrefs(self.node, self.vref_lines)]
 
-    def addNode(self, xyz):
+    def add_node(self, xyz):
         xyzw = np.hstack((xyz, 1))
         self.nodes = np.vstack((self.nodes, xyzw))
 
-    def addLine(self, line):
-        self.lines.append(line)
+    def add_vref_line(self, line):
+        self.vref_lines.append(line)
 
-    def parse_line(self, line_text):
+    def parse_text_line(self, text_line):
         """load a single line from a Waveform OBJ model file"""
-        line_text = line_text.strip()
-        if not line_text:
+        text_line = text_line.strip()
+        if not text_line:
             # Ignore blank lines
             return
-        if line_text.startswith("#"):
+        if text_line.startswith("#"):
             # Ignore comment lines
             return
 
-        keyword, args = fixedsplit(line_text, maxsplit=1)
+        keyword, args = fixedsplit(text_line, maxsplit=1)
 
         method = self._handlers.get(keyword)
         if not method:
@@ -82,20 +88,18 @@ class Model:
             coords = None
         if not (coords and 3 <= len(coords) <= 4):
             raise ModelParseException(f"Bad vector arguments: {args}")
-        self.addNode(coords[:3])
+        self.add_node(coords[:3])
 
     @parses("l")
     def parse_line_element(self, args):
         vrefs = [parse_vref(v) for v in args.split()]
         if len(vrefs) < 2:
             raise ModelParseException(f"Not enough vertex references in line: {args}")
-        for refa, refb in pairs(vrefs):
-            self.addLine((refa, refb))
+        self.add_vref_line(vrefs)
 
     @parses("f")
     def parse_face_element(self, args):
         vrefs = [parse_vref(v) for v in args.split()]
         if len(vrefs) < 3:
             raise ModelParseException(f"Not enough vertex references in face: {args}")
-        for refa, refb in wrapped_pairs(vrefs):
-            self.addLine((refa, refb))
+        self.add_vref_line(vrefs + [vrefs[0]])
